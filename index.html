@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritus by Realtech - Crear Cuenta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .register-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .register-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #4169E1, #3a4a52);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .logo-icon {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 35px solid #3a4a52;
+            position: absolute;
+            top: 2px;
+            left: 0;
+        }
+
+        .circle {
+            width: 20px;
+            height: 20px;
+            background: #4169E1;
+            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            right: 0;
+        }
+
+        .company-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3a4a52;
+            letter-spacing: 2px;
+        }
+
+        .app-name {
+            color: #4169E1;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            flex: 1;
+        }
+
+        .form-group.full-width {
+            flex: 1 1 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #3a4a52;
+            font-weight: 500;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4169E1;
+            box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.1);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .tooltip-icon {
+            width: 16px;
+            height: 16px;
+            background: #4169E1;
+            border-radius: 50%;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            line-height: 16px;
+            font-weight: bold;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background: #333;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+
+        .strength-weak { color: #e74c3c; }
+        .strength-medium { color: #f39c12; }
+        .strength-strong { color: #27ae60; }
+
+        .register-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4169E1, #5a7bff);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(65, 105, 225, 0.3);
+        }
+
+        .register-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+            text-align: center;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .login-link a {
+            color: #4169E1;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .organization-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+        }
+
+        .organization-section h3 {
+            color: #3a4a52;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .register-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo-section">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="triangle"></div>
+                    <div class="circle"></div>
+                </div>
+                <div class="company-name">REALTECH</div>
+            </div>
+            <div class="app-name">Ritus</div>
+            <div class="tagline">Crear tu cuenta para generar documentación profesional</div>
+        </div>
+
+        <form id="registerForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">Nombre <span class="required">*</span></label>
+                    <input type="text" id="firstName" name="firstName" required placeholder="Juan">
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Apellido <span class="required">*</span></label>
+                    <input type="text" id="lastName" name="lastName" required placeholder="Pérez">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo Electrónico <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required placeholder="juan@miempresa.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    Contraseña <span class="required">*</span>
+                    <span class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">Mínimo 8 caracteres, incluye mayúsculas, minúsculas, números y símbolos</span>
+                    </span>
+                </label>
+                <input type="password" id="password" name="password" required placeholder="••••••••" minlength="8">
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Contraseña <span class="required">*</span></label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="••••••••">
+            </div>
+
+            <div class="organization-section">
+                <h3>Información de tu Empresa</h3>
+                
+                <div class="form-group">
+                    <label for="organizationName">
+                        Nombre de la Empresa <span class="required">*</span>
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">El nombre oficial de tu empresa para los documentos</span>
+                        </span>
+                    </label>
+                    <input type="text" id="organizationName" name="organizationName" required placeholder="Mi Empresa SAS">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="industry">Industria <span class="required">*</span></label>
+                        <select id="industry" name="industry" required>
+                            <option value="">Seleccionar industria</option>
+                            <option value="tecnologia">Tecnología</option>
+                            <option value="manufactura">Manufactura</option>
+                            <option value="servicios">Servicios</option>
+                            <option value="comercio">Comercio</option>
+                            <option value="construccion">Construcción</option>
+                            <option value="salud">Salud</option>
+                            <option value="educacion">Educación</option>
+                            <option value="financiero">Financiero</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="companySize">Tamaño de Empresa</label>
+                        <select id="companySize" name="companySize">
+                            <option value="">Seleccionar tamaño</option>
+                            <option value="micro">Micro (1-10 empleados)</option>
+                            <option value="pequeña">Pequeña (11-50 empleados)</option>
+                            <option value="mediana">Mediana (51-200 empleados)</option>
+                            <option value="grande">Grande (200+ empleados)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="position">
+                        Tu Cargo en la Empresa
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Ej: Gerente General, Director de Calidad, Administrador</span>
+                        </span>
+                    </label>
+                    <input type="text" id="position" name="position" placeholder="Gerente General">
+                </div>
+            </div>
+
+            <button type="submit" class="register-btn" id="registerBtn">
+                <span id="registerText">Crear Cuenta</span>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Creando cuenta...
+                </div>
+            </button>
+
+            <div class="success-message" id="successMessage">
+                ¡Cuenta creada exitosamente! 🎉<br>
+                <strong>Serás redirigido para continuar.</strong>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                Error al crear la cuenta. Intenta nuevamente.
+            </div>
+        </form>
+
+        <div class="login-link">
+            ¿Ya tienes cuenta? <a href="login.html">Iniciar Sesión</a>
+        </div>
+    </div>
+
+    <script>
+        // API endpoint
+        const REGISTER_API = '/auth/register';
+
+        // Validación de contraseña en tiempo real
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthElement = document.getElementById('passwordStrength');
+            
+            let strength = 0;
+            const checks = [
+                /.{8,}/, /[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/
+            ];
+
+            checks.forEach(check => {
+                if (check.test(password)) strength++;
+            });
+
+            if (password.length === 0) {
+                strengthElement.textContent = '';
+                strengthElement.className = 'password-strength';
+            } else if (strength < 3) {
+                strengthElement.textContent = '⚠️ Contraseña débil';
+                strengthElement.className = 'password-strength strength-weak';
+            } else if (strength < 4) {
+                strengthElement.textContent = '✓ Contraseña media';
+                strengthElement.className = 'password-strength strength-medium';
+            } else {
+                strengthElement.textContent = '✅ Contraseña fuerte';
+                strengthElement.className = 'password-strength strength-strong';
+            }
+        });
+
+        // Validación de confirmación de contraseña
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            this.setCustomValidity(this.value !== password ? 'Las contraseñas no coinciden' : '');
+        });
+
+        // Manejo del formulario
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const registerBtn = document.getElementById('registerBtn');
+            const registerText = document.getElementById('registerText');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            // Validar que las contraseñas coincidan
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Las contraseñas no coinciden.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            // Mostrar estado de carga
+            registerBtn.disabled = true;
+            registerText.style.display = 'none';
+            loading.style.display = 'flex';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const formData = new FormData(this);
+            const data = {
+                name: `${formData.get('firstName')} ${formData.get('lastName')}`,
+                email: formData.get('email'),
+                password: formData.get('password'),
+                organization_name: formData.get('organizationName')
+            };
+
+            try {
+                const response = await fetch(REGISTER_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Error ${response.status}`);
+                }
+                
+                const result = await response.json();
+
+                if (result.organization_id && result.email) {
+                    // Guardar en localStorage
+                    localStorage.setItem('organization_id', result.organization_id);
+                    localStorage.setItem('userEmail', result.email);
+                    
+                    successMessage.style.display = 'block';
+                    this.reset();
+                    
+                    // Redirigir al formulario de generación después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = 'ritus_form.html';
+                    }, 2000);
+                } else {
+                    throw new Error('La respuesta del servidor no fue la esperada.');
+                }
+
+            } catch (error) {
+                errorMessage.textContent = `Error al crear la cuenta: ${error.message}. Intenta nuevamente.`;
+                errorMessage.style.display = 'block';
+                console.error('Register error:', error);
+            } finally {
+                // Restaurar botón (excepto en éxito)
+                if (successMessage.style.display !== 'block') {
+                    registerBtn.disabled = false;
+                    registerText.style.display = 'block';
+                    loading.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
