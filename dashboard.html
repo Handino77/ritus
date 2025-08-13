@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritus by Realtech - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #3a4a52;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e1e5e9;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            position: relative;
+            width: 32px;
+            height: 32px;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-bottom: 28px solid #3a4a52;
+            position: absolute;
+            top: 2px;
+            left: 0;
+        }
+
+        .circle {
+            width: 16px;
+            height: 16px;
+            background: #4169E1;
+            border-radius: 50%;
+            position: absolute;
+            top: 12px;
+            right: 0;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .company-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #3a4a52;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .app-name {
+            color: #4169E1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #3a4a52;
+        }
+
+        .user-email {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #e9ecef;
+            color: #3a4a52;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #4169E1, #5a7bff);
+            color: white;
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .welcome-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .organizations-icon {
+            background: linear-gradient(135deg, #4169E1, #5a7bff);
+            color: white;
+        }
+
+        .documents-icon {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #3a4a52;
+        }
+
+        .organization-selector {
+            margin-bottom: 2rem;
+        }
+
+        .organization-selector label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #3a4a52;
+        }
+
+        .org-dropdown {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .org-dropdown:focus {
+            outline: none;
+            border-color: #4169E1;
+            box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.1);
+        }
+
+        .generate-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #4169E1, #5a7bff);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(65, 105, 225, 0.3);
+        }
+
+        .generate-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            pointer-events: none;
+        }
+
+        .recent-documents {
+            margin-top: 3rem;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .document-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .document-type {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+        }
+        
+        .type-organigrama {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .document-title {
+            font-weight: 600;
+            color: #3a4a52;
+            margin-bottom: 0.5rem;
+            flex-grow: 1;
+        }
+
+        .document-date {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .doc-btn {
+            padding: 6px 12px;
+            border: 1px solid #e1e5e9;
+            background: white;
+            color: #666;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .doc-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .spinner-small {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e1e5e9;
+            border-top: 2px solid #4169E1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
+            
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="triangle"></div>
+                    <div class="circle"></div>
+                </div>
+                <div class="brand-text">
+                    <div class="company-name">REALTECH</div>
+                    <div class="app-name">Ritus</div>
+                </div>
+            </div>
+            
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name" id="userName">Usuario</div>
+                    <div class="user-email" id="userEmail">cargando...</div>
+                </div>
+                <a href="#" class="logout-btn" id="logoutBtn">Cerrar Sesión</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="welcome-section">
+            <h1>¡Bienvenido a Ritus!</h1>
+            <p>Genera documentación empresarial profesional y organigramas automáticamente con inteligencia artificial</p>
+        </section>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon organizations-icon">🏢</div>
+                    <h2 class="card-title">Mi Organización</h2>
+                </div>
+                <p>Aquí puedes gestionar la información de tu organización y ver los documentos que has generado.</p>
+                <br>
+                <div class="generate-section">
+                    <h2 style="color: #3a4a52; margin-bottom: 1rem;">Generar o Actualizar Documentación</h2>
+                    <p style="color: #666; margin-bottom: 1.5rem;">
+                        Haz clic para ir al formulario y crear tu Manual de Procedimientos y Organigrama.
+                    </p>
+                    <a href="ritus_form.html" id="generateBtn" class="generate-btn disabled">
+                        <span>🚀</span>
+                        <span id="generateText">Ir al Formulario de Generación</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <section class="recent-documents">
+            <div class="card-header">
+                <div class="card-icon documents-icon">📄</div>
+                <h2 class="card-title">Documentos Generados</h2>
+            </div>
+            <div id="documentsLoading" style="text-align: center; padding: 2rem;">
+                <div class="spinner-small" style="margin: 0 auto;"></div>
+                <p style="margin-top: 1rem; color: #666;">Cargando documentos...</p>
+            </div>
+            <div class="documents-grid" id="documentsGrid" style="display: none;">
+                </div>
+            <div id="noDocuments" style="display: none; text-align: center; color: #666; padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+                <p>Aún no has generado ningún documento.</p>
+                <p>Ve al <a href="ritus_form.html">formulario de generación</a> para crear tu primer manual y organigrama.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar datos de usuario y organización desde localStorage
+            const userEmail = localStorage.getItem('userEmail');
+            const organizationId = localStorage.getItem('organization_id');
+
+            if (!userEmail || !organizationId) {
+                // Si no hay datos, podría redirigir al login.
+                // Para este caso, mostraremos un mensaje y deshabilitaremos acciones.
+                alert('No se encontró información de usuario. Por favor, inicia sesión o regístrate.');
+                document.getElementById('userName').textContent = "Usuario Desconocido";
+                document.getElementById('userEmail').textContent = "No autenticado";
+                document.getElementById('generateBtn').classList.add('disabled');
+                document.getElementById('documentsLoading').style.display = 'none';
+                return;
+            }
+
+            // Actualizar UI con datos del usuario
+            document.getElementById('userEmail').textContent = userEmail;
+            const name = userEmail.split('@')[0].replace('.', ' ');
+            document.getElementById('userName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+
+            // Habilitar el botón de generación y pasar datos a la siguiente página
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.classList.remove('disabled');
+            generateBtn.addEventListener('click', (e) => {
+                // Usamos sessionStorage para pasar datos de forma segura entre páginas
+                sessionStorage.setItem('organization_id', organizationId);
+                sessionStorage.setItem('userEmail', userEmail);
+            });
+
+            // Cargar los documentos de la organización
+            loadDocuments(organizationId);
+
+            // Configurar botón de logout
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    alert('Sesión cerrada. Serás redirigido al formulario de registro.');
+                    window.location.href = 'ritus_register.html';
+                }
+            });
+        });
+
+        async function loadDocuments(organizationId) {
+            const loadingEl = document.getElementById('documentsLoading');
+            const gridEl = document.getElementById('documentsGrid');
+            const noDocsEl = document.getElementById('noDocuments');
+            
+            loadingEl.style.display = 'block';
+            gridEl.style.display = 'none';
+            noDocsEl.style.display = 'none';
+
+            try {
+                const response = await fetch(`/organizations/${organizationId}/documents`);
+                if (!response.ok) {
+                    throw new Error(`Error al cargar documentos: ${response.statusText}`);
+                }
+                const documents = await response.json();
+
+                gridEl.innerHTML = ''; // Limpiar grid
+
+                if (documents.length === 0) {
+                    noDocsEl.style.display = 'block';
+                } else {
+                    documents.forEach(doc => {
+                        const card = document.createElement('div');
+                        card.className = 'document-card';
+                        
+                        const docType = doc.type === 'manual_iso' ? 'Manual ISO' : 'Organigrama';
+                        const docTypeClass = doc.type === 'manual_iso' ? 'type-manual' : 'type-organigrama';
+
+                        card.innerHTML = `
+                            <span class="document-type ${docTypeClass}">${docType}</span>
+                            <h3 class="document-title">${docType} de la Organización</h3>
+                            <p class="document-date">Última actualización: ${new Date(doc.updated_at || Date.now()).toLocaleDateString()}</p>
+                            <div class="document-actions">
+                                ${doc.pdf_url ? `<a href="${doc.pdf_url}" target="_blank" class="doc-btn">📥 Descargar PDF</a>` : ''}
+                                ${doc.html_content ? `<a href="data:text/html;charset=utf-8,${encodeURIComponent(doc.html_content)}" target="_blank" class="doc-btn">👁️ Ver HTML</a>` : ''}
+                            </div>
+                        `;
+                        gridEl.appendChild(card);
+                    });
+                    gridEl.style.display = 'grid';
+                }
+
+            } catch (error) {
+                console.error(error);
+                noDocsEl.innerHTML = `<p>Ocurrió un error al cargar los documentos.</p><p><small>${error.message}</small></p>`;
+                noDocsEl.style.display = 'block';
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
