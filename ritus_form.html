@@ -266,23 +266,34 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const userEmailEl = document.getElementById('userEmail');
-            const orgIdEl = document.getElementById('organizationId');
-            const submitBtn = document.getElementById('submitBtn');
-            const loadingOverlay = document.getElementById('loadingOverlay');
+        // ... (código existente del script) ...
 
-            // Obtener datos desde sessionStorage
-            const userEmail = sessionStorage.getItem('userEmail');
-            const organizationId = sessionStorage.getItem('organization_id');
+document.addEventListener('DOMContentLoaded', () => {
+    const userEmailEl = document.getElementById('userEmail');
+    const orgIdEl = document.getElementById('organizationId');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
-            if (!userEmail || !organizationId) {
-                alert('No se encontró información de la sesión. Por favor, vuelve al dashboard.');
-                userEmailEl.textContent = 'Error: No encontrado';
-                orgIdEl.textContent = 'Error: No encontrado';
-                submitBtn.disabled = true;
-                return;
-            }
+    // OBTENER DATOS DESDE LOCALSTORAGE DE FORMA CONSISTENTE
+    const userEmail = localStorage.getItem('userEmail');
+    const organizationId = localStorage.getItem('organization_id');
+
+    if (!userEmail || !organizationId) {
+        alert('No se encontró información de la sesión. Por favor, inicia sesión o regístrate.');
+        userEmailEl.textContent = 'Error: No encontrado';
+        orgIdEl.textContent = 'Error: No encontrado';
+        submitBtn.disabled = true;
+        return;
+    }
+
+    // Mostrar información en la UI
+    userEmailEl.textContent = userEmail;
+    orgIdEl.textContent = organizationId;
+
+    // ... (resto del script) ...
+});
+
+// ... (resto del código) ...
 
             // Mostrar información en la UI
             userEmailEl.textContent = userEmail;
