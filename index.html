@@ -513,23 +513,25 @@
                     throw new Error(errorData.message || `Error ${response.status}`);
                 }
                 
-                const result = await response.json();
+                // ... (código existente del script) ...
 
-                if (result.organization_id && result.email) {
-                    // Guardar en localStorage
-                    localStorage.setItem('organization_id', result.organization_id);
-                    localStorage.setItem('userEmail', result.email);
-                    
-                    successMessage.style.display = 'block';
-                    this.reset();
-                    
-                    // Redirigir al formulario de generación después de 2 segundos
-                    setTimeout(() => {
-                        window.location.href = 'ritus_form.html';
-                    }, 2000);
-                } else {
-                    throw new Error('La respuesta del servidor no fue la esperada.');
-                }
+// Dentro de la función que maneja la respuesta exitosa del fetch
+const result = await response.json();
+if (result.success) {
+    // GUARDAR DATOS EN LOCALSTORAGE DE FORMA CONSISTENTE
+    localStorage.setItem('userEmail', result.email);
+    localStorage.setItem('organization_id', result.organization_id);
+
+    alert('Registro exitoso. Serás redirigido al dashboard.');
+    // Redirigir al dashboard después de un breve retraso
+    setTimeout(() => {
+        window.location.href = 'ritus_dashboard.html';
+    }, 2000);
+} else {
+    throw new Error(result.message || 'El registro falló por un motivo desconocido.');
+}
+
+// ... (resto del código) ...
 
             } catch (error) {
                 errorMessage.textContent = `Error al crear la cuenta: ${error.message}. Intenta nuevamente.`;
