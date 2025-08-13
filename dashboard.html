@@ -450,50 +450,45 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cargar datos de usuario y organización desde localStorage
-            const userEmail = localStorage.getItem('userEmail');
-            const organizationId = localStorage.getItem('organization_id');
+        // ... (código existente del script) ...
 
-            if (!userEmail || !organizationId) {
-                // Si no hay datos, podría redirigir al login.
-                // Para este caso, mostraremos un mensaje y deshabilitaremos acciones.
-                alert('No se encontró información de usuario. Por favor, inicia sesión o regístrate.');
-                document.getElementById('userName').textContent = "Usuario Desconocido";
-                document.getElementById('userEmail').textContent = "No autenticado";
-                document.getElementById('generateBtn').classList.add('disabled');
-                document.getElementById('documentsLoading').style.display = 'none';
-                return;
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos de usuario y organización desde localStorage (correcto)
+    const userEmail = localStorage.getItem('userEmail');
+    const organizationId = localStorage.getItem('organization_id');
 
-            // Actualizar UI con datos del usuario
-            document.getElementById('userEmail').textContent = userEmail;
-            const name = userEmail.split('@')[0].replace('.', ' ');
-            document.getElementById('userName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    if (!userEmail || !organizationId) {
+        // ... (código para manejar el error) ...
+        return;
+    }
 
-            // Habilitar el botón de generación y pasar datos a la siguiente página
-            const generateBtn = document.getElementById('generateBtn');
-            generateBtn.classList.remove('disabled');
-            generateBtn.addEventListener('click', (e) => {
-                // Usamos sessionStorage para pasar datos de forma segura entre páginas
-                sessionStorage.setItem('organization_id', organizationId);
-                sessionStorage.setItem('userEmail', userEmail);
-            });
+    // ... (actualizar UI con datos del usuario) ...
 
-            // Cargar los documentos de la organización
-            loadDocuments(organizationId);
+    // Habilitar el botón de generación
+    const generateBtn = document.getElementById('generateBtn');
+    generateBtn.classList.remove('disabled');
+    // El evento 'click' ya no necesita guardar en sessionStorage
+    generateBtn.addEventListener('click', (e) => {
+        // No es necesario guardar de nuevo, ya está en localStorage.
+        // La redirección por defecto del <a> es suficiente.
+    });
 
-            // Configurar botón de logout
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    alert('Sesión cerrada. Serás redirigido al formulario de registro.');
-                    window.location.href = 'ritus_register.html';
-                }
-            });
-        });
+    // Cargar los documentos de la organización
+    loadDocuments(organizationId);
+
+    // Configurar botón de logout
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            alert('Sesión cerrada. Serás redirigido al formulario de registro.');
+            window.location.href = 'ritus_register.html';
+        }
+    });
+});
+
+// ... (resto del código, incluyendo la función loadDocuments) ...
 
         async function loadDocuments(organizationId) {
             const loadingEl = document.getElementById('documentsLoading');
