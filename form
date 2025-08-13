@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritus by Realtech - Generar Documentación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #3a4a52;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e1e5e9;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            position: relative;
+            width: 32px;
+            height: 32px;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-bottom: 28px solid #3a4a52;
+            position: absolute;
+            top: 2px;
+            left: 0;
+        }
+
+        .circle {
+            width: 16px;
+            height: 16px;
+            background: #4169E1;
+            border-radius: 50%;
+            position: absolute;
+            top: 12px;
+            right: 0;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .company-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #3a4a52;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .app-name {
+            color: #4169E1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #e9ecef;
+            color: #3a4a52;
+        }
+
+        .main-content {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            color: #3a4a52;
+        }
+
+        .form-header p {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #4169E1;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+        
+        .info-box p {
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box strong {
+            color: #3a4a52;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4169E1, #5a7bff);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(65, 105, 225, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .spinner-large {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e1e5e9;
+            border-top: 4px solid #4169E1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        .loading-text {
+            color: #3a4a52;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .loading-subtext {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="triangle"></div>
+                    <div class="circle"></div>
+                </div>
+                <div class="brand-text">
+                    <div class="company-name">REALTECH</div>
+                    <div class="app-name">Ritus</div>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <a href="ritus_dashboard.html" class="back-btn">← Volver al Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="form-header">
+            <h1>🚀 Generar Documentación Empresarial</h1>
+            <p>Confirma para crear tu Manual de Procedimientos y Organigrama profesional.</p>
+        </div>
+
+        <div class="info-box">
+            <p>Estás a punto de generar la documentación para:</p>
+            <p><strong>Email:</strong> <span id="userEmail">cargando...</span></p>
+            <p><strong>ID de Organización:</strong> <span id="organizationId">cargando...</span></p>
+            <br>
+            <p>El sistema utilizará la información de los empleados registrados en tu organización para generar los documentos. Este proceso se realiza con IA y puede tardar entre 30 y 60 segundos.</p>
+        </div>
+
+        <button class="btn-primary" id="submitBtn">
+            <span>🤖</span>
+            Generar Documentos Ahora
+        </button>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-large"></div>
+        <h3 class="loading-text">Generando Documentos...</h3>
+        <p class="loading-subtext">Este proceso puede tardar hasta un minuto. Por favor, no cierres esta ventana.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userEmailEl = document.getElementById('userEmail');
+            const orgIdEl = document.getElementById('organizationId');
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            // Obtener datos desde sessionStorage
+            const userEmail = sessionStorage.getItem('userEmail');
+            const organizationId = sessionStorage.getItem('organization_id');
+
+            if (!userEmail || !organizationId) {
+                alert('No se encontró información de la sesión. Por favor, vuelve al dashboard.');
+                userEmailEl.textContent = 'Error: No encontrado';
+                orgIdEl.textContent = 'Error: No encontrado';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            // Mostrar información en la UI
+            userEmailEl.textContent = userEmail;
+            orgIdEl.textContent = organizationId;
+
+            // Event listener para el botón de generar
+            submitBtn.addEventListener('click', async () => {
+                if (!confirm('¿Estás seguro de que quieres generar los documentos? Esto puede sobreescribir versiones anteriores.')) {
+                    return;
+                }
+
+                loadingOverlay.style.display = 'flex';
+                submitBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/mvp/generate-all', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            organization_id: organizationId,
+                            email: userEmail
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'El servidor respondió con un error.');
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('¡Documentos generados y enviados exitosamente! 🎉\n\nSerás redirigido al dashboard para verlos.');
+                        window.location.href = 'ritus_dashboard.html';
+                    } else {
+                        throw new Error(result.message || 'La generación falló por un motivo desconocido.');
+                    }
+
+                } catch (error) {
+                    console.error('Error al generar documentos:', error);
+                    alert(`❌ Ocurrió un error al generar los documentos:\n\n${error.message}\n\nPor favor, inténtalo de nuevo.`);
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
