@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login y Registro con Auth0</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+        h1 {
+            color: #1a237e;
+            margin-bottom: 20px;
+        }
+        .auth-buttons button, #logout-btn {
+            background-color: #1a237e;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+        .auth-buttons button:hover, #logout-btn:hover {
+            background-color: #3949ab;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 5px;
+        }
+        .user-info p {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+        .user-info strong {
+            color: #1a237e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Autenticación con Auth0</h1>
+        <div id="auth-controls" class="auth-buttons">
+            <button id="login-btn">Iniciar Sesión</button>
+            <button id="signup-btn">Registrarse</button>
+        </div>
+        
+        <div id="user-info" style="display: none;">
+            <p><strong>¡Hola!</strong> Estás autenticado.</p>
+            <div class="info">
+                <p><strong>ID de Usuario:</strong></p>
+                <p id="user-id"></p>
+                <p><strong>Correo Electrónico:</strong></p>
+                <p id="user-email"></p>
+            </div>
+            <button id="logout-btn">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script>
+        // *** PASO 1: REEMPLAZA ESTOS VALORES ***
+        const config = {
+            domain: "dev-6phie2e4mj7852ie.us.auth0.com",
+            clientId: "TU_CLIENT_ID_AQUI", // REEMPLAZA CON TU CLIENT ID
+            redirectUri: "https://TU_USUARIO.github.io/TU_REPOSITORIO/" // REEMPLAZA CON TU URL DE GITHUB PAGES
+        };
+
+        let auth0Client = null;
+
+        const updateUI = async () => {
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            document.getElementById("auth-controls").style.display = isAuthenticated ? "none" : "block";
+            document.getElementById("user-info").style.display = isAuthenticated ? "block" : "none";
+
+            if (isAuthenticated) {
+                const user = await auth0Client.getUser();
+                document.getElementById("user-id").textContent = user.sub;
+                document.getElementById("user-email").textContent = user.email;
+            }
+        };
+
+        const configureAuth0 = async () => {
+            auth0Client = await auth0.createAuth0Client(config);
+
+            // Manejar la redirección después del login
+            const query = window.location.search;
+            if (query.includes("code=") && query.includes("state=")) {
+                await auth0Client.handleRedirectCallback();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            updateUI();
+        };
+
+        document.getElementById("login-btn").addEventListener("click", () => {
+            auth0Client.loginWithRedirect();
+        });
+
+        document.getElementById("signup-btn").addEventListener("click", () => {
+            auth0Client.loginWithRedirect({
+                authorizationParams: {
+                    screen_hint: 'signup'
+                }
+            });
+        });
+
+        document.getElementById("logout-btn").addEventListener("click", () => {
+            auth0Client.logout({
+                logoutParams: {
+                    returnTo: window.location.origin
+                }
+            });
+        });
+
+        configureAuth0();
+    </script>
+</body>
+</html>
