@@ -6,41 +6,49 @@
   <title>Simplifica tu Documentación Empresarial</title>
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-    form { margin-bottom: 20px; }
-    input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; }
-    button { padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+    h1 { color: #333; }
+    form { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    input[type="text"], input[type="checkbox"], textarea { width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    div label { font-weight: normal; }
+    button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-size: 16px; transition: background-color 0.3s; }
     button:hover { background: #0056b3; }
-    #auth-section, #app-section { display: none; }
+    button:disabled { background: #cccccc; cursor: not-allowed; }
+    #logout-btn { background-color: #dc3545; margin-top: 10px; }
+    #logout-btn:hover { background-color: #c82333; }
+    #auth-section { text-align: center; }
     .hidden { display: none; }
-    #result a { margin-right: 10px; }
+    #result { margin-top: 20px; background-color: #e9ecef; padding: 15px; border-radius: 4px; }
+    #result a { display: inline-block; margin-right: 10px; text-decoration: none; background-color: #28a745; color: white; padding: 10px 15px; border-radius: 4px; }
+    #result a:hover { background-color: #218838; }
   </style>
 </head>
 <body>
   <div id="auth-section">
     <h1>Bienvenido</h1>
-    <button id="login-btn">Iniciar Sesión</button>
-    <button id="register-btn">Registrarse</button>
+    <p>Inicia sesión para generar la documentación de tu empresa.</p>
+    <button id="login-btn">Iniciar Sesión / Registrarse</button>
   </div>
 
   <div id="app-section" class="hidden">
     <h1>Datos Básicos de la Empresa</h1>
     <form id="company-form">
-      <label>Nombre de la Empresa:</label>
+      <label for="company-name">Nombre de la Empresa:</label>
       <input type="text" id="company-name" required>
 
-      <label>Descripción:</label>
-      <textarea id="company-desc" required></textarea>
+      <label for="company-desc">Descripción:</label>
+      <textarea id="company-desc" rows="4" required></textarea>
 
-      <label>Departamentos (separados por comas):</label>
+      <label for="departments">Departamentos (separados por comas):</label>
       <input type="text" id="departments" placeholder="Ej: Ventas, Marketing, HR" required>
 
-      <label>Procesos Básicos (separados por comas):</label>
-      <input type="text" id="processes" placeholder="Ej: Ventas, Reclutamiento" required>
+      <label for="processes">Procesos Básicos (separados por comas):</label>
+      <input type="text" id="processes" placeholder="Ej: Venta de productos, Reclutamiento" required>
 
       <div>
         <input type="checkbox" id="generate-manual" checked>
-        <label for="generate-manual">Generar Manual</label>
+        <label for="generate-manual">Generar Manual de Procesos</label>
       </div>
       <div>
         <input type="checkbox" id="generate-orgchart" checked>
@@ -49,38 +57,41 @@
 
       <button type="submit">Generar Documentos</button>
     </form>
-    <button id="logout-btn">Cerrar Sesión</button>
     <div id="result"></div>
+    <button id="logout-btn">Cerrar Sesión</button>
   </div>
 
   <script>
-    const auth0 = new auth0.Auth0Client({
-      domain: 'dev-6phie2e4mj7852ie.us.auth0.com', // Reemplaza con tu dominio de Auth0
-      clientId: 'QcbaWxdZHkkOGSIeu6FyahgKKDvBMVSB', // Reemplaza con tu Client ID
-      redirect_uri: window.location.origin,
-      useRefreshTokens: true
-    });
+    let auth0Client = null;
+
+    const authConfig = {
+      domain: 'dev-6phie2e4mj7852ie.us.auth0.com',
+      clientId: 'QcbaWxdZHkkOGSIeu6FyahgKKDvBMVSB',
+      authorizationParams: {
+        redirect_uri: window.location.origin
+      }
+    };
 
     const authSection = document.getElementById('auth-section');
     const appSection = document.getElementById('app-section');
     const loginBtn = document.getElementById('login-btn');
-    const registerBtn = document.getElementById('register-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const companyForm = document.getElementById('company-form');
     const resultDiv = document.getElementById('result');
 
-    async function updateUI() {
-      const isAuthenticated = await auth0.isAuthenticated();
-      authSection.style.display = isAuthenticated ? 'none' : 'block';
+    const updateUI = async () => {
+      const isAuthenticated = await auth0Client.isAuthenticated();
+      authSection.classList.toggle('hidden', isAuthenticated);
       appSection.classList.toggle('hidden', !isAuthenticated);
-    }
+    };
 
-    loginBtn.onclick = () => auth0.loginWithRedirect();
-    registerBtn.onclick = () => auth0.loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } });
-    logoutBtn.onclick = () => auth0.logout({ returnTo: window.location.origin });
+    loginBtn.onclick = () => auth0Client.loginWithRedirect();
+    logoutBtn.onclick = () => auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
 
     companyForm.onsubmit = async (e) => {
       e.preventDefault();
+      
+      const submitButton = companyForm.querySelector('button[type="submit"]');
       const data = {
         companyName: document.getElementById('company-name').value,
         companyDesc: document.getElementById('company-desc').value,
@@ -95,51 +106,66 @@
         return;
       }
 
-      resultDiv.innerHTML = 'Generando...';
-      const token = await auth0.getAccessTokenSilently();
+      submitButton.disabled = true;
+      submitButton.textContent = 'Generando...';
+      resultDiv.innerHTML = 'Procesando tu solicitud... ⏳';
+      
+      try {
+        const token = await auth0Client.getTokenSilently();
+        let manualUrl = null;
+        let orgchartUrl = null;
 
-      if (data.generateManual) {
-        await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/manual', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            companyName: data.companyName,
-            companyDesc: data.companyDesc,
-            processes: data.processes
-          })
-        });
+        if (data.generateManual) {
+          const response = await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/manual', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyName: data.companyName, companyDesc: data.companyDesc, processes: data.processes })
+          });
+          if (!response.ok) throw new Error(`Error al generar manual: ${response.statusText}`);
+          const result = await response.json();
+          // ASUMO que tu API devuelve una URL en una propiedad 'downloadUrl' o similar.
+          // AJUSTA 'result.downloadUrl' si la propiedad en la respuesta de tu API tiene otro nombre.
+          manualUrl = result.downloadUrl; 
+        }
+
+        if (data.generateOrgchart) {
+          const response = await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyName: data.companyName, departments: data.departments })
+          });
+          if (!response.ok) throw new Error(`Error al generar organigrama: ${response.statusText}`);
+          const result = await response.json();
+          // ASUMO que tu API devuelve una URL en una propiedad 'downloadUrl' o similar.
+          // AJUSTA 'result.downloadUrl' si la propiedad en la respuesta de tu API tiene otro nombre.
+          orgchartUrl = result.downloadUrl;
+        }
+
+        let finalHtml = '<strong>¡Documentos listos!</strong><br>';
+        if (manualUrl) finalHtml += `<a href="${manualUrl}" target="_blank" download>Descargar Manual PDF</a>`;
+        if (orgchartUrl) finalHtml += `<a href="${orgchartUrl}" target="_blank" download>Descargar Organigrama PDF</a>`;
+        resultDiv.innerHTML = finalHtml;
+
+      } catch (error) {
+        console.error('Error al generar documentos:', error);
+        resultDiv.innerHTML = `<strong style="color: red;">Error:</strong> ${error.message}. Revisa la consola para más detalles.`;
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Generar Documentos';
       }
-
-      if (data.generateOrgchart) {
-        await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            companyName: data.companyName,
-            departments: data.departments
-          })
-        });
-      }
-
-      resultDiv.innerHTML = 'Documentos generados: ';
-      if (data.generateManual) resultDiv.innerHTML += '<a href="#">Descargar Manual PDF</a> ';
-      if (data.generateOrgchart) resultDiv.innerHTML += '<a href="#">Descargar Organigrama PDF</a>';
     };
-
-    (async () => {
+    
+    window.onload = async () => {
+      auth0Client = await auth0.createAuth0Client(authConfig);
+      
       const query = window.location.search;
       if (query.includes('code=') && query.includes('state=')) {
-        await auth0.handleRedirectCallback();
+        await auth0Client.handleRedirectCallback();
         window.history.replaceState({}, document.title, '/');
       }
+      
       await updateUI();
-    })();
+    };
   </script>
 </body>
 </html>
