@@ -176,7 +176,7 @@
         const authConfig = {
             domain: 'dev-6phie2e4mj7852ie.us.auth0.com',
             clientId: 'QcbaWxdZHkkOGSIeu6FyahgKKDvBMVSB',
-            authorizationParams: { redirect_uri: window.location.origin }
+            authorizationParams: { redirect_uri: window.location.href } // CAMBIO AQUÍ
         };
 
         // --- UI Elements ---
@@ -196,7 +196,7 @@
 
         // --- Event Listeners ---
         loginBtn.onclick = () => auth0Client.loginWithRedirect();
-        logoutBtn.onclick = () => auth0Client.logout({ logoutParams: { returnTo: window.location.origin } });
+        logoutBtn.onclick = () => auth0Client.logout({ logoutParams: { returnTo: window.location.href } }); // CAMBIO AQUÍ
 
         companyForm.onsubmit = async (e) => {
             e.preventDefault();
@@ -231,7 +231,7 @@
                     });
                     if (!response.ok) throw new Error(`Error en Manual: ${response.status} ${response.statusText}`);
                     const result = await response.json();
-                    manualUrl = result.downloadUrl; // AJUSTA ESTO si tu API devuelve otro nombre de propiedad
+                    manualUrl = result.downloadUrl;
                 }
 
                 if (data.generateOrgchart) {
@@ -242,7 +242,7 @@
                     });
                     if (!response.ok) throw new Error(`Error en Organigrama: ${response.status} ${response.statusText}`);
                     const result = await response.json();
-                    orgchartUrl = result.downloadUrl; // AJUSTA ESTO si tu API devuelve otro nombre de propiedad
+                    orgchartUrl = result.downloadUrl;
                 }
 
                 let finalHtml = `<strong>¡Documentos listos!</strong><div class="download-links">`;
