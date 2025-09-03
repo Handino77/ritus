@@ -160,21 +160,32 @@
             e.preventDefault();
             const submitButton = companyForm.querySelector('button[type="submit"]');
 
-            // --- Datos que el usuario ingresa ---
             const userEmail = document.getElementById('user-email').value;
             const companyName = document.getElementById('company-name').value;
-
-            // --- Datos de prueba fijos para la base de datos ---
-            const organizationId = '550e8400-e29b-41d4-a716-446655440000'; // UUID de ejemplo
-            const companyDesc = 'Empresa de prueba dedicada a la gestión de documentos.';
-            const departments = ['Ventas', 'Marketing', 'Desarrollo', 'Recursos Humanos'];
-            const processes = ['Proceso de ventas', 'Proceso de onboarding de clientes', 'Proceso de contratación'];
+            
+            // --- Datos de prueba fijos para la base de datos y la generación de documentos ---
+            const organizationId = '550e8400-e29b-41d4-a716-446655440000';
+            const companyDesc = 'Empresa de prueba dedicada a la gestión de documentos empresariales con IA.';
+            const mission = 'Nuestra misión es empoderar a las organizaciones con herramientas de IA que simplifiquen la documentación y mejoren la eficiencia operativa.';
+            const vision = 'Ser la plataforma líder global en la automatización de la documentación corporativa.';
+            const employees = [
+                { id: 1, name: 'Juan Pérez', position: 'Director General', reports_to: null },
+                { id: 2, name: 'Ana Gómez', position: 'Gerente de Marketing', reports_to: 'Juan Pérez' },
+                { id: 3, name: 'Carlos Ruiz', position: 'Gerente de Ventas', reports_to: 'Juan Pérez' },
+                { id: 4, name: 'Maria López', position: 'Analista de Marketing', reports_to: 'Ana Gómez' },
+                { id: 5, name: 'Pedro Sánchez', position: 'Ejecutivo de Ventas', reports_to: 'Carlos Ruiz' }
+            ];
+            const departments = ['Dirección', 'Marketing', 'Ventas'];
+            const processes = ['Creación de contenido', 'Gestión de campañas', 'Análisis de mercado'];
 
             const data = {
                 companyName: companyName,
                 companyDesc: companyDesc,
                 email: userEmail,
                 organization_id: organizationId,
+                mission: mission,
+                vision: vision,
+                employees: employees,
                 departments: departments,
                 processes: processes,
                 generateManual: document.getElementById('generate-manual').checked,
@@ -202,7 +213,9 @@
                             companyDesc: data.companyDesc, 
                             processes: data.processes, 
                             email: data.email, 
-                            organization_id: data.organization_id 
+                            organization_id: data.organization_id,
+                            mission: data.mission,
+                            vision: data.vision
                         })
                     });
                     if (!response.ok) throw new Error(`Error en Manual: ${response.status} ${response.statusText}`);
@@ -218,7 +231,8 @@
                             companyName: data.companyName, 
                             departments: data.departments, 
                             email: data.email, 
-                            organization_id: data.organization_id 
+                            organization_id: data.organization_id,
+                            employees: data.employees
                         })
                     });
                     if (!response.ok) throw new Error(`Error en Organigrama: ${response.status} ${response.statusText}`);
