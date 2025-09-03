@@ -1,142 +1,145 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login y Registro con Auth0</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f2f5;
-            margin: 0;
-            color: #333;
-        }
-        .container {
-            background: #fff;
-            padding: 30px 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 350px;
-        }
-        h1 {
-            color: #1a237e;
-            margin-bottom: 20px;
-        }
-        .auth-buttons button, #logout-btn {
-            background-color: #1a237e;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 10px 5px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-            width: 100%;
-        }
-        .auth-buttons button:hover, #logout-btn:hover {
-            background-color: #3949ab;
-        }
-        .info {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e8f5e9;
-            border: 1px solid #c8e6c9;
-            border-radius: 5px;
-        }
-        .user-info p {
-            font-size: 18px;
-            margin: 5px 0;
-        }
-        .user-info strong {
-            color: #1a237e;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simplifica tu Documentación Empresarial</title>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    form { margin-bottom: 20px; }
+    input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; }
+    button { padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #auth-section, #app-section { display: none; }
+    .hidden { display: none; }
+    #result a { margin-right: 10px; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Autenticación con Auth0</h1>
-        <div id="auth-controls" class="auth-buttons">
-            <button id="login-btn">Iniciar Sesión</button>
-            <button id="signup-btn">Registrarse</button>
-        </div>
-        
-        <div id="user-info" style="display: none;">
-            <p><strong>¡Hola!</strong> Estás autenticado.</p>
-            <div class="info">
-                <p><strong>ID de Usuario:</strong></p>
-                <p id="user-id"></p>
-                <p><strong>Correo Electrónico:</strong></p>
-                <p id="user-email"></p>
-            </div>
-            <button id="logout-btn">Cerrar Sesión</button>
-        </div>
-    </div>
+  <div id="auth-section">
+    <h1>Bienvenido</h1>
+    <button id="login-btn">Iniciar Sesión</button>
+    <button id="register-btn">Registrarse</button>
+  </div>
 
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script>
-        // *** PASO 1: REEMPLAZA ESTOS VALORES ***
-        const config = {
-            domain: "dev-6phie2e4mj7852ie.us.auth0.com",
-            clientId: "TU_CLIENT_ID_AQUI", // REEMPLAZA CON TU CLIENT ID
-            redirectUri: "https://TU_USUARIO.github.io/TU_REPOSITORIO/" // REEMPLAZA CON TU URL DE GITHUB PAGES
-        };
+  <div id="app-section" class="hidden">
+    <h1>Datos Básicos de la Empresa</h1>
+    <form id="company-form">
+      <label>Nombre de la Empresa:</label>
+      <input type="text" id="company-name" required>
 
-        let auth0Client = null;
+      <label>Descripción:</label>
+      <textarea id="company-desc" required></textarea>
 
-        const updateUI = async () => {
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            document.getElementById("auth-controls").style.display = isAuthenticated ? "none" : "block";
-            document.getElementById("user-info").style.display = isAuthenticated ? "block" : "none";
+      <label>Departamentos (separados por comas):</label>
+      <input type="text" id="departments" placeholder="Ej: Ventas, Marketing, HR" required>
 
-            if (isAuthenticated) {
-                const user = await auth0Client.getUser();
-                document.getElementById("user-id").textContent = user.sub;
-                document.getElementById("user-email").textContent = user.email;
-            }
-        };
+      <label>Procesos Básicos (separados por comas):</label>
+      <input type="text" id="processes" placeholder="Ej: Ventas, Reclutamiento" required>
 
-        const configureAuth0 = async () => {
-            auth0Client = await auth0.createAuth0Client(config);
+      <div>
+        <input type="checkbox" id="generate-manual" checked>
+        <label for="generate-manual">Generar Manual</label>
+      </div>
+      <div>
+        <input type="checkbox" id="generate-orgchart" checked>
+        <label for="generate-orgchart">Generar Organigrama</label>
+      </div>
 
-            // Manejar la redirección después del login
-            const query = window.location.search;
-            if (query.includes("code=") && query.includes("state=")) {
-                await auth0Client.handleRedirectCallback();
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            updateUI();
-        };
+      <button type="submit">Generar Documentos</button>
+    </form>
+    <button id="logout-btn">Cerrar Sesión</button>
+    <div id="result"></div>
+  </div>
 
-        document.getElementById("login-btn").addEventListener("click", () => {
-            auth0Client.loginWithRedirect();
+  <script>
+    const auth0 = new auth0.Auth0Client({
+      domain: 'dev-6phie2e4mj7852ie.us.auth0.com', // Reemplaza con tu dominio de Auth0
+      clientId: 'QcbaWxdZHkkOGSIeu6FyahgKKDvBMVSB', // Reemplaza con tu Client ID
+      redirect_uri: window.location.origin,
+      useRefreshTokens: true
+    });
+
+    const authSection = document.getElementById('auth-section');
+    const appSection = document.getElementById('app-section');
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const companyForm = document.getElementById('company-form');
+    const resultDiv = document.getElementById('result');
+
+    async function updateUI() {
+      const isAuthenticated = await auth0.isAuthenticated();
+      authSection.style.display = isAuthenticated ? 'none' : 'block';
+      appSection.classList.toggle('hidden', !isAuthenticated);
+    }
+
+    loginBtn.onclick = () => auth0.loginWithRedirect();
+    registerBtn.onclick = () => auth0.loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } });
+    logoutBtn.onclick = () => auth0.logout({ returnTo: window.location.origin });
+
+    companyForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = {
+        companyName: document.getElementById('company-name').value,
+        companyDesc: document.getElementById('company-desc').value,
+        departments: document.getElementById('departments').value.split(',').map(d => d.trim()),
+        processes: document.getElementById('processes').value.split(',').map(p => p.trim()),
+        generateManual: document.getElementById('generate-manual').checked,
+        generateOrgchart: document.getElementById('generate-orgchart').checked
+      };
+
+      if (!data.generateManual && !data.generateOrgchart) {
+        alert('Selecciona al menos un documento para generar.');
+        return;
+      }
+
+      resultDiv.innerHTML = 'Generando...';
+      const token = await auth0.getAccessTokenSilently();
+
+      if (data.generateManual) {
+        await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/manual', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            companyName: data.companyName,
+            companyDesc: data.companyDesc,
+            processes: data.processes
+          })
         });
+      }
 
-        document.getElementById("signup-btn").addEventListener("click", () => {
-            auth0Client.loginWithRedirect({
-                authorizationParams: {
-                    screen_hint: 'signup'
-                }
-            });
+      if (data.generateOrgchart) {
+        await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            companyName: data.companyName,
+            departments: data.departments
+          })
         });
+      }
 
-        document.getElementById("logout-btn").addEventListener("click", () => {
-            auth0Client.logout({
-                logoutParams: {
-                    returnTo: window.location.origin
-                }
-            });
-        });
+      resultDiv.innerHTML = 'Documentos generados: ';
+      if (data.generateManual) resultDiv.innerHTML += '<a href="#">Descargar Manual PDF</a> ';
+      if (data.generateOrgchart) resultDiv.innerHTML += '<a href="#">Descargar Organigrama PDF</a>';
+    };
 
-        configureAuth0();
-    </script>
+    (async () => {
+      const query = window.location.search;
+      if (query.includes('code=') && query.includes('state=')) {
+        await auth0.handleRedirectCallback();
+        window.history.replaceState({}, document.title, '/');
+      }
+      await updateUI();
+    })();
+  </script>
 </body>
 </html>
