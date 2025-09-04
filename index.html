@@ -359,7 +359,7 @@
             if (!currentSessionId) return;
 
             try {
-                const response = await fetch(`https://primary-production-3b83.up.railway.app/webhook/mvp/status/={{ $runIndex }}${currentSessionId}`, {
+                const response = await fetch(`https://primary-production-3b83.up.railway.app/webhook/mvp/status/={{ $parameter.session_id }}${currentSessionId}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
