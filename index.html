@@ -136,25 +136,6 @@
             margin: 0 auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .download-links a {
-            display: inline-block;
-            text-decoration: none;
-            background-color: var(--success-color);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 6px;
-            margin: 5px;
-            transition: background-color 0.2s;
-        }
-        .download-links a:hover { background-color: #157347; }
-        .info-box {
-            background-color: rgba(13, 110, 253, 0.1);
-            border: 1px solid rgba(13, 110, 253, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-        }
         .error-message {
             color: var(--danger-color);
             background-color: rgba(220, 53, 69, 0.1);
@@ -227,7 +208,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateCheckboxStyles();
             
-            // Event listeners para checkboxes
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', updateCheckboxStyles);
             });
@@ -237,6 +217,7 @@
         const resultDiv = document.getElementById('result');
         const buttonText = document.getElementById('button-text');
 
+        // <<< INICIO DEL CÓDIGO CORREGIDO >>>
         companyForm.onsubmit = async (e) => {
             e.preventDefault();
             const submitButton = companyForm.querySelector('button[type="submit"]');
@@ -257,69 +238,39 @@
                 return;
             }
 
-            // Preparar array de documentos seleccionados
-            const documentsToGenerate = [];
-            if (generateManual) documentsToGenerate.push('manual');
-            if (generateOrgchart) documentsToGenerate.push('organigrama');
-
-            // --- Datos fijos para testing ---
-            const organizationId = '550e8400-e29b-41d4-a716-446655440000';
-
-            const payload = {
-                organization_id: organizationId,
-                email: userEmail,
-                documents: documentsToGenerate,
-                // Datos adicionales que tu flujo puede necesitar
-                organization_name: companyName,
-                industry: "Empresa de prueba dedicada a la gestión de documentos empresariales con IA.",
-                policy: "Nuestro compromiso es proporcionar servicios de alta calidad mediante la mejora continua de nuestros procesos.",
-                objectives: "Incrementar la satisfacción del cliente en un 15% durante el próximo año y reducir los tiempos de procesamiento en un 20%."
-            };
-
             // UI Loading state
             submitButton.disabled = true;
-            buttonText.textContent = 'Generando...';
-            
-            const loadingMessages = [
-                'Procesando información de la empresa...',
-                'Generando contenido con IA...',
-                'Creando documentos PDF...',
-                'Preparando envío por correo...'
-            ];
-            
-            let messageIndex = 0;
-            resultDiv.innerHTML = `<p>${loadingMessages[0]}</p><div class="loader"></div>`;
-            
-            const messageInterval = setInterval(() => {
-                messageIndex = (messageIndex + 1) % loadingMessages.length;
-                resultDiv.querySelector('p').textContent = loadingMessages[messageIndex];
-            }, 2000);
+            buttonText.textContent = 'Iniciando...';
+            resultDiv.innerHTML = `<p>Comunicando con el servidor...</p><div class="loader"></div>`;
 
             try {
-                // Opción A: Usar webhook unificado (RECOMENDADO)
-                const response = await fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/consolidate-and-send', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                /* 
-                // Opción B: Usar webhooks separados (solo si no quieres modificar el flujo)
+                // --- Lógica de llamadas a Webhooks Separados (CORREGIDA) ---
                 const promises = [];
+                const organizationId = '550e8400-e29b-41d4-a716-446655440000'; // Dato fijo para testing
                 
+                // ID de sesión único para agrupar estas solicitudes en el backend
+                const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                const totalDocuments = (generateManual ? 1 : 0) + (generateOrgchart ? 1 : 0);
+
+                const basePayload = {
+                    organization_id: organizationId,
+                    email: userEmail,
+                    organization_name: companyName,
+                    session_id: sessionId,
+                    total_documents: totalDocuments,
+                    // Datos adicionales que tu flujo puede necesitar
+                    industry: "Empresa de prueba dedicada a la gestión de documentos empresariales con IA.",
+                    policy: "Nuestro compromiso es proporcionar servicios de alta calidad mediante la mejora continua de nuestros procesos.",
+                    objectives: "Incrementar la satisfacción del cliente en un 15% durante el próximo año y reducir los tiempos de procesamiento en un 20%."
+                };
+
                 if (generateManual) {
                     promises.push(
                         fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/manual', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                organization_id: organizationId,
-                                email: userEmail,
-                                organization_name: companyName
-                            })
+                            body: JSON.stringify({ ...basePayload, document_type: 'manual' })
                         })
                     );
                 }
@@ -329,57 +280,45 @@
                         fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                organization_id: organizationId,
-                                email: userEmail,
-                                organization_name: companyName
-                            })
+                            body: JSON.stringify({ ...basePayload, document_type: 'organigrama' })
                         })
                     );
                 }
                 
                 const responses = await Promise.all(promises);
-                const results = await Promise.all(responses.map(r => r.json()));
-                */
 
-                if (!response.ok) {
-                    throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+                // Verificar que todas las llamadas se hayan iniciado correctamente (código 2xx)
+                for (const response of responses) {
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                        throw new Error(`Error del servidor al iniciar la generación: ${errorData.message || response.statusText}`);
+                    }
                 }
-
-                const result = await response.json();
                 
-                clearInterval(messageInterval);
-                
-                if (result.success) {
-                    let documentNames = [];
-                    if (generateManual) documentNames.push('Manual de Procedimientos');
-                    if (generateOrgchart) documentNames.push('Organigrama');
-                    
-                    resultDiv.innerHTML = `
-                        <div style="color: var(--success-color); margin-bottom: 15px;">
-                            <strong>✅ ¡Documentos generados exitosamente!</strong>
-                        </div>
-                        <p><strong>${documentNames.join(' y ')}</strong> ${documentNames.length > 1 ? 'han sido enviados' : 'ha sido enviado'} a tu correo electrónico:</p>
-                        <p style="font-weight: 600; color: var(--primary-color);">${userEmail}</p>
-                        <p style="font-size: 0.9em; color: #666;">
-                            📧 Revisa tu bandeja de entrada (y spam si no lo encuentras).<br>
-                            ⏱️ La entrega puede tomar hasta 2-3 minutos.
-                        </p>
-                    `;
-                } else {
-                    throw new Error(result.message || 'Error desconocido al generar los documentos');
-                }
-
-            } catch (error) {
-                clearInterval(messageInterval);
-                console.error('Error al generar documentos:', error);
+                // Mostrar el mensaje de éxito final al usuario
+                let documentNames = [];
+                if (generateManual) documentNames.push('Manual de Procedimientos');
+                if (generateOrgchart) documentNames.push('Organigrama');
                 
                 resultDiv.innerHTML = `
+                    <div style="color: var(--success-color); margin-bottom: 15px;">
+                        <strong>✅ ¡Proceso iniciado exitosamente!</strong>
+                    </div>
+                    <p><strong>${documentNames.join(' y ')}</strong> ${documentNames.length > 1 ? 'están siendo generados y serán enviados' : 'está siendo generado y será enviado'} a tu correo:</p>
+                    <p style="font-weight: 600; color: var(--primary-color);">${userEmail}</p>
+                    <p style="font-size: 0.9em; color: #666;">
+                        📧 Revisa tu bandeja de entrada (y la de spam) en unos minutos.<br>
+                        ⏱️ La entrega puede tomar un momento.
+                    </p>
+                `;
+
+            } catch (error) {
+                console.error('Error al iniciar la generación:', error);
+                resultDiv.innerHTML = `
                     <div class="error-message">
-                        <strong>❌ Error al generar documentos:</strong><br>
-                        ${error.message}
-                        <br><br>
-                        <small>Si el problema persiste, contacta al soporte técnico.</small>
+                        <strong>❌ Error al iniciar el proceso:</strong><br>
+                        ${error.message}<br><br>
+                        <small>Por favor, intenta de nuevo. Si el problema persiste, contacta al soporte.</small>
                     </div>
                 `;
             } finally {
@@ -387,6 +326,7 @@
                 buttonText.textContent = 'Generar Documentos';
             }
         };
+        // <<< FIN DEL CÓDIGO CORREGIDO >>>
 
         // Prevenir envío accidental del formulario con Enter
         companyForm.addEventListener('keydown', function(e) {
