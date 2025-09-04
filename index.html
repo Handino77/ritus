@@ -282,303 +282,266 @@
     </div>
 
     <script>
-        let currentSessionId = null;
-        let pollingInterval = null;
-        let documentStatus = {
-            manual: 'pending',
-            organigrama: 'pending'
-        };
+let currentSessionId = null;
+let pollingInterval = null;
+let documentStatus = {
+    manual: 'pending',
+    organigrama: 'pending'
+};
 
-        // Función para toggle de checkboxes con mejor UX
-        function toggleCheckbox(checkboxId) {
-            const checkbox = document.getElementById(checkboxId);
-            checkbox.checked = !checkbox.checked;
-            updateCheckboxStyles();
-        }
+// Toggle de checkboxes con mejor UX
+function toggleCheckbox(checkboxId) {
+    const checkbox = document.getElementById(checkboxId);
+    checkbox.checked = !checkbox.checked;
+    updateCheckboxStyles();
+}
 
-        function updateCheckboxStyles() {
-            document.querySelectorAll('.checkbox-item').forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (checkbox.checked) {
-                    item.classList.add('selected');
-                } else {
-                    item.classList.remove('selected');
+function updateCheckboxStyles() {
+    document.querySelectorAll('.checkbox-item').forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        item.classList.toggle('selected', checkbox.checked);
+    });
+}
+
+// Actualiza el estado de los botones de descarga
+function updateDownloadButton(documentType, status, downloadUrl = null) {
+    const button = document.getElementById(`download-${documentType}`);
+    const indicator = button.querySelector('.status-indicator');
+
+    // Resetear clases
+    button.className = 'download-btn';
+    indicator.className = 'status-indicator';
+
+    switch(status) {
+        case 'pending':
+            button.classList.add('btn-warning');
+            indicator.classList.add('status-pending');
+            button.disabled = true;
+            break;
+        case 'processing':
+            button.classList.add('btn-warning');
+            indicator.classList.add('status-processing');
+            button.disabled = true;
+            break;
+        case 'ready':
+            button.classList.add('btn-success');
+            indicator.classList.add('status-ready');
+            button.disabled = false;
+            if (downloadUrl) {
+                downloadDocument(downloadUrl, documentType); // DESCARGA AUTOMÁTICA
+            }
+            break;
+        case 'error':
+            button.classList.add('btn-warning');
+            indicator.classList.add('status-error');
+            button.disabled = true;
+            break;
+    }
+}
+
+// Descargar documento automáticamente
+function downloadDocument(url, documentType) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${documentType}_${currentSessionId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Verificar estado de documentos
+async function checkDocumentStatus() {
+    if (!currentSessionId) return;
+
+    try {
+        const response = await fetch(`https://primary-production-3b83.up.railway.app/webhook/mvp/status/${currentSessionId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            let allCompleted = true;
+
+            Object.keys(documentStatus).forEach(docType => {
+                if (data[docType]) {
+                    const newStatus = data[docType].status;
+                    const downloadUrl = data[docType].download_url;
+
+                    if (documentStatus[docType] !== newStatus) {
+                        documentStatus[docType] = newStatus;
+                        updateDownloadButton(docType, newStatus, downloadUrl);
+                    }
+
+                    if (newStatus !== 'ready' && newStatus !== 'error') {
+                        allCompleted = false;
+                    }
                 }
             });
-        }
 
-        // Función para actualizar el estado de los botones de descarga
-        function updateDownloadButton(documentType, status, downloadUrl = null) {
-            const button = document.getElementById(`download-${documentType}`);
-            const indicator = button.querySelector('.status-indicator');
-            
-            // Resetear clases
-            button.className = 'download-btn';
-            indicator.className = 'status-indicator';
-            
-            switch(status) {
-                case 'pending':
-                    button.classList.add('btn-warning');
-                    indicator.classList.add('status-pending');
-                    button.disabled = true;
-                    break;
-                case 'processing':
-                    button.classList.add('btn-warning');
-                    indicator.classList.add('status-processing');
-                    button.disabled = true;
-                    break;
-                case 'ready':
-                    button.classList.add('btn-success');
-                    indicator.classList.add('status-ready');
-                    button.disabled = false;
-                    if (downloadUrl) {
-                        button.onclick = () => downloadDocument(downloadUrl, documentType);
-                    }
-                    break;
-                case 'error':
-                    button.classList.add('btn-warning');
-                    indicator.classList.add('status-error');
-                    button.disabled = true;
-                    break;
-            }
-        }
-
-        // Función para descargar documento
-        function downloadDocument(url, documentType) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${documentType}_${currentSessionId}.pdf`;
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Función para verificar el estado de los documentos
-        async function checkDocumentStatus() {
-            if (!currentSessionId) return;
-
-            try {
-                const response = await fetch(`https://primary-production-3b83.up.railway.app/webhook/mvp/status/={{ $parameter.session_id }}${currentSessionId}`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let allCompleted = true;
-                    
-                    // Actualizar estado de cada documento
-                    Object.keys(documentStatus).forEach(docType => {
-                        if (data[docType]) {
-                            const newStatus = data[docType].status;
-                            const downloadUrl = data[docType].download_url;
-                            
-                            if (documentStatus[docType] !== newStatus) {
-                                documentStatus[docType] = newStatus;
-                                updateDownloadButton(docType, newStatus, downloadUrl);
-                            }
-                            
-                            if (newStatus !== 'ready' && newStatus !== 'error') {
-                                allCompleted = false;
-                            }
-                        }
-                    });
-
-                    // Si todos los documentos están completos, detener el polling
-                    if (allCompleted) {
-                        clearInterval(pollingInterval);
-                        document.getElementById('polling-status').innerHTML = 
-                            '✅ Verificación completa. Los documentos están listos para descargar.';
-                    }
-                } else {
-                    console.error('Error al verificar estado:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error en polling:', error);
-            }
-        }
-
-        // Función para iniciar el polling
-        function startPolling() {
-            // Verificar inmediatamente
-            checkDocumentStatus();
-            
-            // Luego verificar cada 10 segundos
-            pollingInterval = setInterval(checkDocumentStatus, 10000);
-        }
-
-        // Función para mostrar la sección de descarga
-        function showDownloadSection(generateManual, generateOrgchart) {
-            const downloadSection = document.getElementById('download-section');
-            const manualBtn = document.getElementById('download-manual');
-            const orgchartBtn = document.getElementById('download-orgchart');
-
-            // Mostrar/ocultar botones según selección
-            if (!generateManual) {
-                manualBtn.style.display = 'none';
-                delete documentStatus.manual;
-            } else {
-                manualBtn.style.display = 'flex';
-                documentStatus.manual = 'processing';
-                updateDownloadButton('manual', 'processing');
-            }
-
-            if (!generateOrgchart) {
-                orgchartBtn.style.display = 'none';
-                delete documentStatus.organigrama;
-            } else {
-                orgchartBtn.style.display = 'flex';
-                documentStatus.organigrama = 'processing';
-                updateDownloadButton('organigrama', 'processing');
-            }
-
-            downloadSection.classList.remove('hidden');
-            startPolling();
-        }
-
-        // Inicializar estilos de checkboxes
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCheckboxStyles();
-            
-            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', updateCheckboxStyles);
-            });
-        });
-
-        const companyForm = document.getElementById('company-form');
-        const resultDiv = document.getElementById('result');
-        const buttonText = document.getElementById('button-text');
-
-        companyForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const submitButton = companyForm.querySelector('button[type="submit"]');
-
-            const userEmail = document.getElementById('user-email').value.trim();
-            const companyName = document.getElementById('company-name').value.trim();
-            const generateManual = document.getElementById('generate-manual').checked;
-            const generateOrgchart = document.getElementById('generate-orgchart').checked;
-
-            // Validaciones
-            if (!userEmail || !companyName) {
-                resultDiv.innerHTML = '<div class="error-message">Por favor, completa todos los campos requeridos.</div>';
-                return;
-            }
-
-            if (!generateManual && !generateOrgchart) {
-                resultDiv.innerHTML = '<div class="error-message">Debes seleccionar al menos un documento para generar.</div>';
-                return;
-            }
-
-            // Limpiar polling anterior si existe
-            if (pollingInterval) {
+            if (allCompleted) {
                 clearInterval(pollingInterval);
+                document.getElementById('polling-status').innerHTML = '✅ Todos los documentos están listos y se descargaron automáticamente.';
             }
+        } else {
+            console.error('Error al verificar estado:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error en polling:', error);
+    }
+}
 
-            // UI Loading state
-            submitButton.disabled = true;
-            buttonText.textContent = 'Iniciando...';
-            resultDiv.innerHTML = `<p>Comunicando con el servidor...</p><div class="loader"></div>`;
+// Iniciar polling
+function startPolling() {
+    checkDocumentStatus();
+    pollingInterval = setInterval(checkDocumentStatus, 5000); // chequear cada 5s para descargas rápidas
+}
 
-            try {
-                // Lógica de llamadas a Webhooks Separados
-                const promises = [];
-                const organizationId = '550e8400-e29b-41d4-a716-446655440000';
-                
-                // ID de sesión único para agrupar estas solicitudes en el backend
-                currentSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                
-                const totalDocuments = (generateManual ? 1 : 0) + (generateOrgchart ? 1 : 0);
+// Mostrar sección de descarga
+function showDownloadSection(generateManual, generateOrgchart) {
+    const downloadSection = document.getElementById('download-section');
+    const manualBtn = document.getElementById('download-manual');
+    const orgchartBtn = document.getElementById('download-orgchart');
 
-                const basePayload = {
-                    organization_id: organizationId,
-                    email: userEmail,
-                    organization_name: companyName,
-                    session_id: currentSessionId,
-                    total_documents: totalDocuments,
-                    industry: "Empresa de prueba dedicada a la gestión de documentos empresariales con IA.",
-                    policy: "Nuestro compromiso es proporcionar servicios de alta calidad mediante la mejora continua de nuestros procesos.",
-                    objectives: "Incrementar la satisfacción del cliente en un 15% durante el próximo año y reducir los tiempos de procesamiento en un 20%."
-                };
+    if (!generateManual) {
+        manualBtn.style.display = 'none';
+        delete documentStatus.manual;
+    } else {
+        manualBtn.style.display = 'flex';
+        documentStatus.manual = 'processing';
+        updateDownloadButton('manual', 'processing');
+    }
 
-                if (generateManual) {
-                    promises.push(
-                        fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/manual', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...basePayload, document_type: 'manual' })
-                        })
-                    );
-                }
-                
-                if (generateOrgchart) {
-                    promises.push(
-                        fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...basePayload, document_type: 'organigrama' })
-                        })
-                    );
-                }
-                
-                const responses = await Promise.all(promises);
+    if (!generateOrgchart) {
+        orgchartBtn.style.display = 'none';
+        delete documentStatus.organigrama;
+    } else {
+        orgchartBtn.style.display = 'flex';
+        documentStatus.organigrama = 'processing';
+        updateDownloadButton('organigrama', 'processing');
+    }
 
-                // Verificar que todas las llamadas se hayan iniciado correctamente
-                for (const response of responses) {
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-                        throw new Error(`Error del servidor al iniciar la generación: ${errorData.message || response.statusText}`);
-                    }
-                }
-                
-                // Mostrar mensaje de éxito y sección de descarga
-                let documentNames = [];
-                if (generateManual) documentNames.push('Manual de Procedimientos');
-                if (generateOrgchart) documentNames.push('Organigrama');
-                
-                resultDiv.innerHTML = `
-                    <div style="color: var(--success-color); margin-bottom: 15px;">
-                        <strong>✅ ¡Proceso iniciado exitosamente!</strong>
-                    </div>
-                    <p><strong>${documentNames.join(' y ')}</strong> ${documentNames.length > 1 ? 'están siendo generados' : 'está siendo generado'}.</p>
-                    <p style="font-weight: 600; color: var(--primary-color);">Copia de seguridad enviada a: ${userEmail}</p>
-                    <p style="font-size: 0.9em; color: #666;">
-                        ⬇️ Los documentos aparecerán para descarga cuando estén listos.<br>
-                        📧 También recibirás una copia por correo electrónico.
-                    </p>
-                `;
+    downloadSection.classList.remove('hidden');
+    startPolling();
+}
 
-                // Mostrar sección de descarga
-                showDownloadSection(generateManual, generateOrgchart);
+// Inicializar estilos de checkboxes
+document.addEventListener('DOMContentLoaded', function() {
+    updateCheckboxStyles();
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', updateCheckboxStyles);
+    });
+});
 
-            } catch (error) {
-                console.error('Error al iniciar la generación:', error);
-                resultDiv.innerHTML = `
-                    <div class="error-message">
-                        <strong>⚠ Error al iniciar el proceso:</strong><br>
-                        ${error.message}<br><br>
-                        <small>Por favor, intenta de nuevo. Si el problema persiste, contacta al soporte.</small>
-                    </div>
-                `;
-            } finally {
-                submitButton.disabled = false;
-                buttonText.textContent = 'Generar Documentos';
-            }
+// Manejo del formulario
+const companyForm = document.getElementById('company-form');
+const resultDiv = document.getElementById('result');
+const buttonText = document.getElementById('button-text');
+
+companyForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const submitButton = companyForm.querySelector('button[type="submit"]');
+
+    const userEmail = document.getElementById('user-email').value.trim();
+    const companyName = document.getElementById('company-name').value.trim();
+    const generateManual = document.getElementById('generate-manual').checked;
+    const generateOrgchart = document.getElementById('generate-orgchart').checked;
+
+    if (!userEmail || !companyName) {
+        resultDiv.innerHTML = '<div class="error-message">Por favor, completa todos los campos requeridos.</div>';
+        return;
+    }
+    if (!generateManual && !generateOrgchart) {
+        resultDiv.innerHTML = '<div class="error-message">Debes seleccionar al menos un documento.</div>';
+        return;
+    }
+
+    if (pollingInterval) clearInterval(pollingInterval);
+
+    submitButton.disabled = true;
+    buttonText.textContent = 'Iniciando...';
+    resultDiv.innerHTML = `<p>Comunicando con el servidor...</p><div class="loader"></div>`;
+
+    try {
+        const promises = [];
+        const organizationId = '550e8400-e29b-41d4-a716-446655440000';
+        currentSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        const basePayload = {
+            organization_id: organizationId,
+            email: userEmail,
+            organization_name: companyName,
+            session_id: currentSessionId,
+            industry: "Empresa de prueba dedicada a la gestión de documentos empresariales con IA.",
+            policy: "Nuestro compromiso es proporcionar servicios de alta calidad mediante la mejora continua de nuestros procesos.",
+            objectives: "Incrementar la satisfacción del cliente y reducir tiempos de procesamiento."
         };
 
-        // Prevenir envío accidental del formulario con Enter
-        companyForm.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.target.type !== 'submit') {
-                e.preventDefault();
-            }
-        });
+        if (generateManual) {
+            promises.push(fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...basePayload, document_type: 'manual' })
+            }));
+        }
+        if (generateOrgchart) {
+            promises.push(fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...basePayload, document_type: 'organigrama' })
+            }));
+        }
 
-        // Limpiar polling al cerrar la página
-        window.addEventListener('beforeunload', function() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
+        const responses = await Promise.all(promises);
+
+        for (const response of responses) {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`Error del servidor al iniciar la generación: ${errorData.message || response.statusText}`);
             }
-        });
-    </script>
+        }
+
+        let documentNames = [];
+        if (generateManual) documentNames.push('Manual de Procedimientos');
+        if (generateOrgchart) documentNames.push('Organigrama');
+
+        resultDiv.innerHTML = `
+            <div style="color: var(--success-color); margin-bottom: 15px;">
+                <strong>✅ ¡Proceso iniciado exitosamente!</strong>
+            </div>
+            <p><strong>${documentNames.join(' y ')}</strong> ${documentNames.length > 1 ? 'están siendo generados' : 'está siendo generado'}.</p>
+            <p style="font-size: 0.9em; color: #666;">
+                ⬇️ Los documentos se descargarán automáticamente cuando estén listos.
+            </p>
+        `;
+
+        showDownloadSection(generateManual, generateOrgchart);
+
+    } catch (error) {
+        console.error('Error al iniciar la generación:', error);
+        resultDiv.innerHTML = `
+            <div class="error-message">
+                <strong>⚠ Error al iniciar el proceso:</strong><br>
+                ${error.message}<br><br>
+                <small>Por favor, intenta de nuevo.</small>
+            </div>
+        `;
+    } finally {
+        submitButton.disabled = false;
+        buttonText.textContent = 'Generar Documentos';
+    }
+};
+
+// Prevenir envío accidental con Enter
+companyForm.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.type !== 'submit') e.preventDefault();
+});
+
+// Limpiar polling al cerrar la página
+window.addEventListener('beforeunload', function() {
+    if (pollingInterval) clearInterval(pollingInterval);
+});
+</script>
+
 </body>
 </html>
