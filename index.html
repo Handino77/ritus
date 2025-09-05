@@ -485,7 +485,7 @@ companyForm.onsubmit = async (e) => {
             }));
         }
         if (generateOrgchart) {
-            promises.push(fetch('https://primary-production-3b83.up.railway.app/webhook/mvp/organigrama', {
+            promises.push(fetch('https://primary-production-3b83.up.railway.app/webhook/api/v1/organigrama/generar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...basePayload, document_type: 'organigrama' })
